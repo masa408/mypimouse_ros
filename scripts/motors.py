@@ -19,6 +19,7 @@ class Motor():
         self.last_time = rospy.Time.now()
         self.using_cmd_vel = False
 
+
     def set_power(self, onoff=False):
         en = "/dev/rtmotoren0"
         try:
@@ -30,6 +31,7 @@ class Motor():
             rospy.logerr("cannot write to " + en)
 
         return False
+
         
     def set_raw_freq(self, left_hz, right_hz):
         if not self.is_on:
@@ -37,21 +39,25 @@ class Motor():
             return
 
         try:
-            with open("/dev/rtmotor_raw_l0", 'w') as lf, open("/dev/rtmotor_raw_r0", w) as rf:
+            with open("/dev/rtmotor_raw_l0", 'w') as lf,\
+                 open("/dev/rtmotor_raw_r0", 'w') as rf:
                 lf.write(str(int(round(left_hz))) + "\n")
                 rf.write(str(int(round(right_hz))) + "\n")
         except:
             rospy.logerr("cannot write to rtmotor_raw_*")
 
+
     def callback_raw_freq(self, message):
         self.set_raw_freq(message.left_hz, message.right_hz)
 
+
     def callback_cmd_vel(self, message):
-        forward_hz = 80000.0*message.linear.x/(9*math.pi)
-        rot_hz = 400.0*message.angular.z/math.pi
-        self.set_raw_freq(forward_hz-rot_hz, foward_hz+rot_hz)
+        forward_hz = 80000.0 * message.linear.x / (9 * math.pi)
+        rot_hz = 400.0 * message.angular.z / math.pi
+        self.set_raw_freq(forward_hz-rot_hz, forward_hz+rot_hz)
         self.using_cmd_vel = True
         self.last_time = rospy.Time.now()
+
 
     def onoff_response(self, onoff):
         d = TriggerResponse()
@@ -59,8 +65,10 @@ class Motor():
         d.message = "ON" if self.is_on else "OFF"
         return d
 
+
     def callback_on(self, message): return self.onoff_response(True)
     def callback_off(self, message): return self.onoff_response(False)
+
 
     def callback_tm(self, message):
         if not self.is_on:
@@ -77,6 +85,7 @@ class Motor():
             return False
 
         return True
+
 
 if __name__ == '__main__':
     rospy.init_node('motors')
